@@ -165,3 +165,13 @@ textarea { min-height: 130px; resize: vertical; line-height: 1.7; }
   .response-top > strong { font-size: 23px; }
   nav { min-height: 28px; align-items: center; }
 }
+nav button.quiet-link { border: 0; background: transparent; padding: 0; color: var(--muted); min-height: 28px; }
+.auth-switch { margin-top: 25px; border: 0; background: transparent; min-height: 44px; }
+fieldset { border: 1px solid var(--line); border-radius: 8px; padding: 17px; margin: 25px 0; }
+legend, .field-label { font-size: 13px; font-weight: 600; }
+.field-label { display: block; margin: 20px 0 10px; }
+.area-choices { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.area-choices label { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 12px; font-weight: 400; }
+.area-choices input { width: 18px; min-height: 18px; flex-shrink: 0; padding: 0; accent-color: var(--blue); }
+.provider-details { font-size: 13px; line-height: 1.8; color: var(--muted); }
+@media(max-width:760px) { .area-choices { grid-template-columns: 1fr; } }

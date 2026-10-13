@@ -4,3 +4,7 @@ __pycache__/
 *.log
 playwright-report/
 test-results/
+.localquote/
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal

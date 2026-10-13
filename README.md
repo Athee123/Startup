@@ -1,39 +1,62 @@
-# LocalQuote — request and match prototype
+# LocalQuote — private account and matching development
 
-A proposed home-services marketplace for posting jobs and comparing local providers' quotes by price, scope, and availability. LocalQuote is a working name; Brampton and a plumbing-first pilot remain hypotheses.
+A home-services marketplace where homeowners request work, matching providers respond with price and availability, and the homeowner chooses. The white-and-navy interface keeps one clear starting point: request a service.
 
-Read [START_HERE.md](START_HERE.md) for the original product brief. The current prototype keeps the selected white-and-navy theme with a simpler purpose: request a service, hear from matching providers, and let the homeowner choose. It implements a three-step job form with photos, service-and-area matching, simulated provider inbox alerts, multiple price/availability/scope responses, and confirmation of the homeowner's choice. The first provider response does not automatically get the job.
+## What works now
 
-All providers are fictional and unverified. Data and simulated alerts live in this browser only, under the `localquote-requests-v1` localStorage key. No accounts, real notifications, bookings, payments, or shared data are connected. The previous [draft](draft/README.md) remains reference material with separate storage; its data is not migrated or overwritten.
+- Homeowner and provider registration, password sign-in, and sign-out.
+- Provider main service, service areas, usual availability, and a pending-review profile.
+- Shared SQLite requests, photos, responses, and homeowner selections.
+- Provider inbox matching by service category and Brampton area. Open inboxes and homeowner responses refresh every five seconds.
+- Only a request's owner can choose its provider. Selection is atomic; the chosen provider sees the assignment, and other providers no longer see that closed job.
+- Homeowners see only their requests; providers see matching jobs and their own quotes, never competitors' prices. Emails and password hashes are not exposed in workspace responses.
 
-## Run the reference prototype privately
+No sample providers are seeded in the current app. Create separate test accounts to try matching. Provider profiles are not verified. Email/SMS/push delivery, email verification, password recovery, payments, and public hosting are not connected. In-app updates work while the signed-in page is open; this is not background push delivery.
 
-From this repository, using Python 3:
+## Run privately
+
+Use **Node.js 24 or newer** (Node 24.19 tested). The app uses built-in HTTP, crypto and SQLite modules with no third-party server dependencies and no build or dependency-install step.
 
 ```sh
-python3 -m http.server 8000 --bind 127.0.0.1
+cd /workspace/Startup
+npm start
 ```
 
-The root page is the current request-and-match prototype. Choose a service (try Landscaping), fill in the request, then use **Provider demo** to see simulated alerts and respond as different sample providers. Return to **My requests** to compare responses and choose one. Matching uses service category and explicitly listed Brampton areas, not GPS or distance. The loopback server has no authentication and is only for local development. Do not expose it publicly. Processes must be restarted in a new task.
+The server binds only to loopback on port 8000. It serves the UI and authenticated APIs together. Python's static server cannot run the current app. Do not expose this development server publicly. Live processes must restart in a new task.
+
+Optional settings: `PORT` changes the port; `LOCALQUOTE_DB` selects the database file (default `.localquote/app.sqlite`). `SECURE_COOKIES=true` requires HTTPS and is for a future TLS deployment, not the current loopback HTTP workflow.
+
+Accounts, salted scrypt password hashes, hashed session tokens, requests, photo data and quotes are stored in the SQLite file. Sessions expire after seven days and are revoked on sign-out. Cookies use HttpOnly and SameSite=Strict. Mutating APIs require JSON, the application request header, and a matching browser origin. Sign-in and registration are limited per connection address. SQLite writes use transactions. Static serving explicitly allows only application assets, protecting source and database files.
+
+The ignored `.localquote/` directory contains private application data: do not commit it, put credentials in code, or use production personal data for development. Data survives process restarts; new machines need the retained database or a deliberate backup. Back up through SQLite's backup API while running, or stop the server before copying the database and any journal files. Backups, deployment TLS, account recovery, and credential review are needed before a live pilot.
+
+## Try the workflow
+
+1. In one browser session create a provider account offering Landscaping in Bramalea.
+2. In another session create a second matching provider account.
+3. In a separate session create a homeowner account and post a landscaping request in Bramalea, optionally with photos.
+4. Both provider inboxes receive the shared request. Respond with different prices, availability, and scope.
+5. The homeowner sees both responses and confirms one choice. The chosen provider sees the assignment; the other inbox closes that request.
+
+No account switching dropdown or fabricated notifications are used. Use separate browser profiles or isolated test contexts.
 
 ## Validate
 
-With Node.js installed (validated with Node 24):
-
 ```sh
-node tests/workflows.cjs
-node --check model.js
+npm test
+node --check server.cjs
 node --check app.js
+npm run test:browser
 ```
 
-There is no build step or package installation. Browser checks additionally require Playwright and Chromium; they are available in the current cloud environment.
+`npm test` executes ten model/API tests, including role and owner isolation, matching, quote privacy, invalid input, request-origin checks, duplicate responses, concurrent selection, persistence across server restart, and session revocation. Test databases are temporary and removed afterward.
 
-With the local server above running, execute `node tests/browser.cjs`. This checks the current flow at 320px, 390px, and 1440px: service selection, photo-backed request, back-navigation, reload persistence, matching provider inboxes, two independent responses, homeowner confirmation, and removal from other providers' inboxes after selection. It also verifies that a storage failure does not create requests or alerts or display a false success. It regenerates the home and response screenshots. Set `CHROMIUM_PATH` if Chromium is installed elsewhere. Browser data is isolated to the test session.
+The browser checks require Playwright and Chromium, available in the current cloud image. They launch their own ephemeral backend and independent homeowner/provider sessions, exercise signup, photo posting, automatic inbox updates, two quotes, confirmation, sign-out/in, and reload at 1440px and 390px, and check the account form at 320px. Set `CHROMIUM_PATH` if needed. The tests regenerate review screenshots and never add accounts to the development database.
 
-Validated: five current model tests, JavaScript syntax checks, and the browser checks above passed. Optional reference checks remain available as `node draft/tests/workflows.cjs` and `node tests/reference-browser.cjs`. This does not validate a backend or real bookings.
+[Desktop home](docs/landing-desktop.png) · [Phone home](docs/landing-mobile.png) · [Phone responses](docs/responses-mobile.png)
 
-## Next stage
+## Original handoff and next stage
 
-Review the simpler [desktop home](docs/landing-desktop.png), [phone home](docs/landing-mobile.png), and [phone responses](docs/responses-mobile.png). Keep fictional content explicitly labelled and never present providers as verified without reviewed evidence.
+[START_HERE.md](START_HERE.md) records the original brief. LocalQuote remains a working name and Brampton a proposed pilot location. `draft/` preserves the supplied localStorage prototype as reference; its browser data has not been imported or overwritten. Its optional tests are `node draft/tests/workflows.cjs` and `node tests/reference-browser.cjs`, with a separate Python static server for the reference app.
 
-The next production stage needs authenticated homeowner/provider accounts, a shared database, photo storage, provider service-area settings, and real notification delivery. Selection must be atomic on the backend so two providers cannot be assigned to the same job. Keep hosting private until public launch is explicitly authorized.
+Next: account recovery and email verification, editable provider profiles, reviewed credentials, production photo storage, email/SMS/push delivery, and a private hosted test environment. Keep hosting private until the user explicitly authorizes public launch.
