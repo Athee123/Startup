@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#224c38">
+  <meta name="description" content="LocalQuote: a private prototype for posting home-service jobs and comparing quotes from local professionals in Brampton.">
+  <title>LocalQuote — A good home starts with a good pro.</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css">
+  <script defer src="model.js"></script>
+  <script defer src="app.js"></script>
+</head>
+<body>
+  <a class="skip" href="#app">Skip to content</a>
+  <div class="demo-strip"><span class="dot"></span> Private prototype <span class="strip-detail">· Sample providers · Saved in this browser · No real bookings</span></div>
+  <header class="site-header">
+    <div class="header-inner">
+      <a href="#home" class="brand" aria-label="LocalQuote home"><span class="brand-mark"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m4 10 8-6 8 6v10H4V10Z" stroke="currentColor" stroke-width="1.8"/><path d="m9 13 2 2 4-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>localquote<span class="brand-period">.</span></a>
+      <nav aria-label="Main navigation">
+        <a href="#home" data-nav="home">Find a pro</a>
+        <a href="#jobs" data-nav="jobs">My jobs <span id="nav-count" class="nav-count">2</span></a>
+        <a href="#professionals" data-nav="professionals">For professionals</a>
+        <a href="#pilot" data-nav="pilot">Pilot plan</a>
+      </nav>
+      <button class="button dark small header-cta" data-action="post">Post a job <span aria-hidden="true">↗</span></button>
+    </div>
+  </header>
+  <main id="app" tabindex="-1"></main>
+  <footer>
+    <div class="footer-inner"><div><a class="brand footer-brand" href="#home">localquote.</a><p>Good work. Close to home.</p></div><div><span>Brampton, Ontario</span><p>A working idea, built one job at a time.</p></div><button class="text-button" data-action="about">About this prototype ↗</button></div>
+  </footer>
+  <dialog id="modal" aria-labelledby="modal-title"><div id="modal-content"></div></dialog>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <noscript><p class="noscript">Please enable JavaScript to use the job and quote workflows.</p></noscript>
+</body>
+</html>

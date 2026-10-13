@@ -1,0 +1,82 @@
+const { chromium } = require('playwright');
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
+const docsDir = path.resolve(__dirname, '../docs');
+(async () => {
+  const browser = await chromium.launch({executablePath: process.env.CHROMIUM_PATH || '/usr/bin/chromium', headless: true, args: ['--no-sandbox']});
+  const errors = [];
+  const page = await browser.newPage();
+  page.on('pageerror', e => errors.push(e.message));
+  page.on('response', r => { if(r.status() >= 400) errors.push(`${r.status()} ${r.url()}`); });
+  fs.mkdirSync(docsDir, {recursive:true});
+  for (const width of [1440, 390, 320]) {
+    await page.setViewportSize({width, height: width > 760 ? 1000 : 844});
+    await page.goto('http://127.0.0.1:8000/');
+    await page.getByRole('heading', {level:1, name:'Your home. The right help.'}).waitFor();
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `Landing overflow at ${width}`);
+    await page.getByText('What happens to demo data?', {exact:true}).click();
+    assert.ok(await page.locator('details').first().getAttribute('open') !== null);
+    await page.getByText('What happens to demo data?', {exact:true}).click();
+    if (width !== 320) await page.screenshot({path:path.join(docsDir, `landing-${width > 760 ? 'desktop' : 'mobile'}.png`),fullPage:true});
+    console.log(`Landing page: ${width}px, navigation/FAQ and no overflow`);
+  }
+  await page.getByRole('link', {name:'Explore the prototype'}).click();
+  await page.getByRole('heading', {level:1}).waitFor();
+  assert.match(page.url(), /draft\/dist/);
+  await page.setViewportSize({width:390,height:844});
+  await page.getByRole('button', {name:'Post your first job'}).click();
+  await page.locator('[data-action="category"][data-category="Plumbing"]').click();
+  await page.getByLabel('A short title').fill('Browser test leaking tap');
+  await page.getByLabel('Tell the professional about the job').fill('The tap leaks. Please include labour, standard parts, and tax in the quote.');
+  await page.getByLabel('Photos (optional)').setInputFiles({name:'test.png',mimeType:'image/png',buffer:Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+a9V8AAAAASUVORK5CYII=', 'base64')});
+  await page.locator('.photo-previews img').waitFor();
+  await page.getByRole('button', {name:'Continue'}).click();
+  await page.getByLabel('Where in Brampton?').selectOption('Bramalea');
+  await page.getByLabel('When do you need it?').selectOption('This week');
+  await page.getByLabel('Budget range').selectOption('Under $250');
+  await page.getByRole('button', {name:'Continue'}).click();
+  await page.getByRole('button', {name:'Post demo job'}).click();
+  await page.locator('.job-detail h2').filter({hasText:'Browser test leaking tap'}).waitFor();
+  assert.equal(await page.locator('.job-photos img').count(), 1);
+  await page.reload();
+  await page.locator('.job-detail h2').filter({hasText:'Browser test leaking tap'}).waitFor();
+  await page.locator('[data-nav="professionals"]').click();
+  await page.locator('[data-action="quote"]').first().click();
+  await page.getByLabel('Total quote (CAD)').fill('175.25');
+  await page.getByLabel('Earliest availability').selectOption('Within 2 days');
+  await page.getByLabel('Inclusions, exclusions & conditions').fill('Labour, standard cartridge, cleanup and tax included. A new tap is excluded.');
+  await page.getByRole('button', {name:'Send demo quote'}).click();
+  await page.locator('[data-nav="jobs"]').click();
+  await page.locator('.job-detail h2').filter({hasText:'Browser test leaking tap'}).waitFor();
+  assert.ok(await page.locator('.job-detail').innerText().then(s => s.includes('$175.25')));
+  await page.locator('[data-nav="professionals"]').click();
+  await page.getByLabel('Choose demo provider profile').selectOption('pro-2');
+  await page.locator('[data-action="quote"]').first().click();
+  await page.getByLabel('Total quote (CAD)').fill('190');
+  await page.getByLabel('Earliest availability').selectOption('Within 4 days');
+  await page.getByLabel('Inclusions, exclusions & conditions').fill('Labour, a standard replacement part, and tax. Full tap replacement is excluded.');
+  await page.getByRole('button', {name:'Send demo quote'}).click();
+  await page.locator('[data-nav="jobs"]').click();
+  await page.locator('[data-action="compare"]').click();
+  await page.getByRole('heading', {name:'Compare quotes',exact:true}).waitFor();
+  assert.equal(await page.locator('.compare-table thead th').count(), 3);
+  await page.getByRole('button', {name:'Back to job'}).click();
+  await page.locator('[data-action="choose"]').first().click();
+  await page.getByRole('button', {name:'Confirm demo selection'}).click();
+  await page.getByRole('button', {name:'Mark demo job complete'}).click();
+  await page.getByText('Demo job marked complete', {exact:true}).first().waitFor();
+  await page.getByRole('button', {name:'Reopen demo job'}).click();
+  assert.ok(await page.evaluate(() => JSON.parse(localStorage.getItem('localquote-prototype-v1')).jobs[0].status === 'open'));
+  for (const width of [1440,390]) {
+    await page.setViewportSize({width,height:900});
+    for(const route of ['home','jobs','professionals','pilot']) {
+      await page.goto(`http://127.0.0.1:8000/draft/dist/#${route}`);
+      await page.locator('main h1').waitFor();
+      assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `Draft ${route} overflow at ${width}`);
+    }
+  }
+  assert.deepEqual(errors, []);
+  console.log('Prototype browser flow passed: job + photo, reload persistence, matched provider quote, comparison, selection, completion, reopening; four routes at desktop and phone sizes; no page errors.');
+  await browser.close();
+})().catch(e => { console.error(e); process.exit(1); });
