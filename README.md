@@ -1,6 +1,6 @@
 # LocalQuote — private account and matching development
 
-A home-services marketplace where homeowners request work, matching providers respond with price and availability, and the homeowner chooses. The white-and-navy interface keeps one clear starting point: request a service.
+A home-services marketplace where homeowners request work, matching providers respond with price and availability, and the homeowner chooses. The white-and-navy interface keeps one clear starting point: request a service. The polished design includes an original home illustration, service icons, dedicated account layouts, a named three-step request flow, and readable provider quote cards.
 
 ## What works now
 
@@ -51,9 +51,9 @@ npm run test:browser
 
 `npm test` executes ten model/API tests, including role and owner isolation, matching, quote privacy, invalid input, request-origin checks, duplicate responses, concurrent selection, persistence across server restart, and session revocation. Test databases are temporary and removed afterward.
 
-The browser checks require Playwright and Chromium, available in the current cloud image. They launch their own ephemeral backend and independent homeowner/provider sessions, exercise signup, photo posting, automatic inbox updates, two quotes, confirmation, sign-out/in, and reload at 1440px and 390px, and check the account form at 320px. Set `CHROMIUM_PATH` if needed. The tests regenerate review screenshots and never add accounts to the development database.
+The browser checks require Playwright and Chromium, available in the current cloud image. They launch their own ephemeral backend and independent homeowner/provider sessions, exercise signup, photo posting, automatic inbox updates, two quotes, confirmation, sign-out/in, and reload at 1440px and 390px, and check the account form at 320px. They also verify password visibility controls, direct sign-in navigation, provider signup, keyboard skip navigation, and focus between request steps. Set `CHROMIUM_PATH` if needed. The tests regenerate review screenshots and never add accounts to the development database.
 
-[Desktop home](docs/landing-desktop.png) · [Phone home](docs/landing-mobile.png) · [Phone responses](docs/responses-mobile.png)
+[Desktop home](docs/landing-desktop.png) · [Phone home](docs/landing-mobile.png) · [Account screen](docs/account-desktop.png) · [Phone request review](docs/request-mobile.png) · [Phone responses](docs/responses-mobile.png)
 
 ## Original handoff and next stage
 
